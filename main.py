@@ -188,58 +188,79 @@ def discord_basic(target):
     return result
 
 def username_check(username):
-    result = {"username": username, "found_on": []}
-    sites = [
-        ("X / Twitter",   f"https://x.com/{username}", ["doesn’t exist"]),
-        ("GitHub",        f"https://github.com/{username}", ["not found"]),
-        ("Reddit",        f"https://www.reddit.com/user/{username}", ["page not found"]),
-        ("Instagram",     f"https://www.instagram.com/{username}/", ["sorry, this page"]),
-        ("Facebook",      f"https://www.facebook.com/{username}", ["content isn't available"]),
-        ("LinkedIn",      f"https://www.linkedin.com/in/{username}/", ["page not found"]),
-        ("YouTube",       f"https://www.youtube.com/@{username}", ["not found"]),
-        ("TikTok",        f"https://www.tiktok.com/@{username}", ["couldn't find"]),
-        ("Pinterest",     f"https://www.pinterest.com/{username}/", ["sorry"]),
-        ("Twitch",        f"https://www.twitch.tv/{username}", ["sorry. unless"]),
-        ("Steam",         f"https://steamcommunity.com/id/{username}/", ["could not be found"]),
-        ("Snapchat",      f"https://www.snapchat.com/add/{username}", ["not available"]),
-        ("SoundCloud",    f"https://soundcloud.com/{username}", ["404"]),
-        ("DeviantArt",    f"https://www.deviantart.com/{username}", ["page you were looking for"]),
-        ("Behance",       f"https://www.behance.net/{username}", ["sorry"]),
-        ("DoxBin",        f"https://doxbin.com/user/{username}", ["not found"]),
-        ("GitLab",        f"https://gitlab.com/{username}", ["404"]),
-        ("Bitbucket",     f"https://bitbucket.org/{username}", ["not found"]),
-        ("CodePen",       f"https://codepen.io/{username}", ["not found"]),
-        ("Replit",        f"https://replit.com/@{username}", ["not found"]),
-        ("Kaggle",        f"https://www.kaggle.com/{username}", ["404"]),
-        ("LeetCode",      f"https://leetcode.com/{username}", ["not found"]),
-        ("Dev.to",        f"https://dev.to/{username}", ["not found"]),
-        ("Hashnode",      f"https://hashnode.com/@{username}", ["not found"]),
-        ("Dribbble",      f"https://dribbble.com/{username}", ["not found"]),
-        ("ArtStation",    f"https://www.artstation.com/{username}", ["404"]),
-        ("500px",         f"https://500px.com/p/{username}", ["404"]),
-        ("Unsplash",      f"https://unsplash.com/@{username}", ["not found"]),
-        ("Flickr",        f"https://www.flickr.com/people/{username}", ["not found"]),
-        ("Bandcamp",      f"https://bandcamp.com/{username}", ["404"]),
-        ("Mixcloud",      f"https://www.mixcloud.com/{username}/", ["404"]),
-        ("Last.fm",       f"https://www.last.fm/user/{username}", ["not found"]),
-        ("Quora",         f"https://www.quora.com/profile/{username}", ["not found"]),
-        ("Medium",        f"https://medium.com/@{username}", ["404"]),
-        ("Keybase",       f"https://keybase.io/{username}", ["not found"]),
-        ("About.me",      f"https://about.me/{username}", ["not found"]),
-        ("Linktree",      f"https://linktr.ee/{username}", ["not found"]),
-        ("Carrd",         f"https://{username}.carrd.co", ["404"]),
-    ]
-    for name, url, errors in sites:
-        try:
-            r = requests.get(url, headers=get_headers(), timeout=8)
-            if r.status_code == 200:
-                page = r.text.lower()
-                if not any(err in page for err in errors):
-                    result["found_on"].append({"platform": name, "url": url})
-        except:
-            pass
-    return result
 
+    result = {
+        "username": username,
+        "found_on": []
+    }
+
+    sites = [
+        ("X / Twitter", f"https://x.com/{username}", ["this account doesn’t exist"]),
+        ("Instagram", f"https://www.instagram.com/{username}/", ["sorry, this page isn't available"]),
+        ("Facebook", f"https://www.facebook.com/{username}", ["content isn't available"]),
+        ("TikTok", f"https://www.tiktok.com/@{username}", ["couldn't find this account"]),
+        ("Snapchat", f"https://www.snapchat.com/add/{username}", ["not found"]),
+        ("Pinterest", f"https://www.pinterest.com/{username}/", ["not found"]),
+        ("LinkedIn", f"https://www.linkedin.com/in/{username}/", ["page not found"]),
+        ("Reddit", f"https://www.reddit.com/user/{username}", ["sorry, nobody on reddit"]),
+        ("Threads", f"https://www.threads.net/@{username}", ["not found"]),
+        ("Bluesky", f"https://bsky.app/profile/{username}", ["not found"]),
+        ("Mastodon", f"https://mastodon.social/@{username}", ["not found"]),
+        ("GitHub", f"https://github.com/{username}", ["not found"]),
+        ("GitLab", f"https://gitlab.com/{username}", ["not found"]),
+        ("Bitbucket", f"https://bitbucket.org/{username}", ["not found"]),
+        ("CodePen", f"https://codepen.io/{username}", ["not found"]),
+        ("Replit", f"https://replit.com/@{username}", ["not found"]),
+        ("HackerRank", f"https://www.hackerrank.com/{username}", ["not found"]),
+        ("Twitch", f"https://www.twitch.tv/{username}", ["sorry"]),
+        ("Steam", f"https://steamcommunity.com/id/{username}/", ["error"]),
+        ("Roblox", f"https://www.roblox.com/user.aspx?username={username}", ["not found"]),
+        ("Xbox", f"https://xboxgamertag.com/search/{username}", ["not found"]),
+        ("PlayStation", f"https://psnprofiles.com/{username}", ["not found"]),
+        ("YouTube", f"https://www.youtube.com/@{username}", ["not found"]),
+        ("SoundCloud", f"https://soundcloud.com/{username}", ["not found"]),
+        ("DeviantArt", f"https://www.deviantart.com/{username}", ["not found"]),
+        ("Behance", f"https://www.behance.net/{username}", ["not found"]),
+        ("Dribbble", f"https://dribbble.com/{username}", ["not found"]),
+        ("ArtStation", f"https://www.artstation.com/{username}", ["not found"]),
+        ("Quora", f"https://www.quora.com/profile/{username}", ["not found"]),
+        ("Medium", f"https://medium.com/@{username}", ["not found"]),
+        ("Tumblr", f"https://{username}.tumblr.com", ["not found"]),
+        ("Disqus", f"https://disqus.com/by/{username}/", ["not found"]),
+        ("Etsy", f"https://www.etsy.com/shop/{username}", ["not found"]),
+        ("Fiverr", f"https://www.fiverr.com/{username}", ["not found"]),
+        ("eBay", f"https://www.ebay.com/usr/{username}", ["not found"]),
+        ("Keybase", f"https://keybase.io/{username}", ["not found"]),
+        ("Gravatar", f"https://en.gravatar.com/{username}", ["not found"]),
+        ("About.me", f"https://about.me/{username}", ["not found"]),
+        ("Patreon", f"https://www.patreon.com/{username}", ["not found"]),
+        ("DoxBin", f"https://doxbin.com/user/{username}", ["not found"]),
+    ]
+
+    for name, url, indicators in sites:
+        try:
+
+            r = requests.get(
+                url,
+                headers=get_headers(),
+                timeout=8
+            )
+
+            if r.status_code == 200:
+
+                text = r.text.lower()
+
+                if not any(indicator in text for indicator in indicators):
+
+                    result["found_on"].append({
+                        "platform": name,
+                        "url": url
+                    })
+
+        except requests.RequestException:
+            pass
+
+    return result
 def instagram_lookup(username):
     result = {"username": username}
     try:
