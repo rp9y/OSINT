@@ -10,30 +10,8 @@ from rich.prompt import Prompt
 from rich.table import Table
 import whois
 import instaloader
-import random
 
 console = Console()
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0",
-    "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/20.0 Chrome/106.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 OPR/107.0.0.0",
-]
-
-def get_headers():
-    return {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Connection": "keep-alive",
-    }
 
 IP_PROVIDERS = [
     "http://ip-api.com/json/{}",
@@ -188,79 +166,55 @@ def discord_basic(target):
     return result
 
 def username_check(username):
-
-    result = {
-        "username": username,
-        "found_on": []
-    }
-
     sites = [
-        ("X / Twitter", f"https://x.com/{username}", ["this account doesn’t exist"]),
-        ("Instagram", f"https://www.instagram.com/{username}/", ["sorry, this page isn't available"]),
-        ("Facebook", f"https://www.facebook.com/{username}", ["content isn't available"]),
-        ("TikTok", f"https://www.tiktok.com/@{username}", ["couldn't find this account"]),
-        ("Snapchat", f"https://www.snapchat.com/add/{username}", ["not found"]),
-        ("Pinterest", f"https://www.pinterest.com/{username}/", ["not found"]),
-        ("LinkedIn", f"https://www.linkedin.com/in/{username}/", ["page not found"]),
-        ("Reddit", f"https://www.reddit.com/user/{username}", ["sorry, nobody on reddit"]),
-        ("Threads", f"https://www.threads.net/@{username}", ["not found"]),
-        ("Bluesky", f"https://bsky.app/profile/{username}", ["not found"]),
-        ("Mastodon", f"https://mastodon.social/@{username}", ["not found"]),
-        ("GitHub", f"https://github.com/{username}", ["not found"]),
-        ("GitLab", f"https://gitlab.com/{username}", ["not found"]),
-        ("Bitbucket", f"https://bitbucket.org/{username}", ["not found"]),
-        ("CodePen", f"https://codepen.io/{username}", ["not found"]),
-        ("Replit", f"https://replit.com/@{username}", ["not found"]),
-        ("HackerRank", f"https://www.hackerrank.com/{username}", ["not found"]),
-        ("Twitch", f"https://www.twitch.tv/{username}", ["sorry"]),
-        ("Steam", f"https://steamcommunity.com/id/{username}/", ["error"]),
-        ("Roblox", f"https://www.roblox.com/user.aspx?username={username}", ["not found"]),
-        ("Xbox", f"https://xboxgamertag.com/search/{username}", ["not found"]),
-        ("PlayStation", f"https://psnprofiles.com/{username}", ["not found"]),
-        ("YouTube", f"https://www.youtube.com/@{username}", ["not found"]),
-        ("SoundCloud", f"https://soundcloud.com/{username}", ["not found"]),
-        ("DeviantArt", f"https://www.deviantart.com/{username}", ["not found"]),
-        ("Behance", f"https://www.behance.net/{username}", ["not found"]),
-        ("Dribbble", f"https://dribbble.com/{username}", ["not found"]),
-        ("ArtStation", f"https://www.artstation.com/{username}", ["not found"]),
-        ("Quora", f"https://www.quora.com/profile/{username}", ["not found"]),
-        ("Medium", f"https://medium.com/@{username}", ["not found"]),
-        ("Tumblr", f"https://{username}.tumblr.com", ["not found"]),
-        ("Disqus", f"https://disqus.com/by/{username}/", ["not found"]),
-        ("Etsy", f"https://www.etsy.com/shop/{username}", ["not found"]),
-        ("Fiverr", f"https://www.fiverr.com/{username}", ["not found"]),
-        ("eBay", f"https://www.ebay.com/usr/{username}", ["not found"]),
-        ("Keybase", f"https://keybase.io/{username}", ["not found"]),
-        ("Gravatar", f"https://en.gravatar.com/{username}", ["not found"]),
-        ("About.me", f"https://about.me/{username}", ["not found"]),
-        ("Patreon", f"https://www.patreon.com/{username}", ["not found"]),
-        ("DoxBin", f"https://doxbin.com/user/{username}", ["not found"]),
+        ("X / Twitter", f"https://x.com/{username}"),
+        ("Instagram", f"https://www.instagram.com/{username}/"),
+        ("Facebook", f"https://www.facebook.com/{username}"),
+        ("TikTok", f"https://www.tiktok.com/@{username}"),
+        ("Snapchat", f"https://www.snapchat.com/add/{username}"),
+        ("Pinterest", f"https://www.pinterest.com/{username}/"),
+        ("LinkedIn", f"https://www.linkedin.com/in/{username}/"),
+        ("Reddit", f"https://www.reddit.com/user/{username}"),
+        ("Threads", f"https://www.threads.net/@{username}"),
+        ("Bluesky", f"https://bsky.app/profile/{username}"),
+        ("Mastodon", f"https://mastodon.social/@{username}"),
+        ("GitHub", f"https://github.com/{username}"),
+        ("GitLab", f"https://gitlab.com/{username}"),
+        ("Bitbucket", f"https://bitbucket.org/{username}"),
+        ("CodePen", f"https://codepen.io/{username}"),
+        ("Replit", f"https://replit.com/@{username}"),
+        ("HackerRank", f"https://www.hackerrank.com/{username}"),
+        ("Twitch", f"https://www.twitch.tv/{username}"),
+        ("Steam", f"https://steamcommunity.com/id/{username}/"),
+        ("Roblox", f"https://www.roblox.com/user.aspx?username={username}"),
+        ("Xbox", f"https://xboxgamertag.com/search/{username}"),
+        ("PlayStation", f"https://psnprofiles.com/{username}"),
+        ("YouTube", f"https://www.youtube.com/@{username}"),
+        ("SoundCloud", f"https://soundcloud.com/{username}"),
+        ("DeviantArt", f"https://www.deviantart.com/{username}"),
+        ("Behance", f"https://www.behance.net/{username}"),
+        ("Dribbble", f"https://dribbble.com/{username}"),
+        ("ArtStation", f"https://www.artstation.com/{username}"),
+        ("Quora", f"https://www.quora.com/profile/{username}"),
+        ("Medium", f"https://medium.com/@{username}"),
+        ("Tumblr", f"https://{username}.tumblr.com"),
+        ("Disqus", f"https://disqus.com/by/{username}/"),
+        ("Etsy", f"https://www.etsy.com/shop/{username}"),
+        ("Fiverr", f"https://www.fiverr.com/{username}"),
+        ("eBay", f"https://www.ebay.com/usr/{username}"),
+        ("Keybase", f"https://keybase.io/{username}"),
+        ("Gravatar", f"https://en.gravatar.com/{username}"),
+        ("About.me", f"https://about.me/{username}"),
+        ("Patreon", f"https://www.patreon.com/{username}"),
+        ("DoxBin", f"https://doxbin.com/user/{username}")
     ]
 
-    for name, url, indicators in sites:
-        try:
+    print(f"\nProfiles for username: {username}\n")
 
-            r = requests.get(
-                url,
-                headers=get_headers(),
-                timeout=8
-            )
+    for name, url in sites:
+        print(f"{name}: {url}")
 
-            if r.status_code == 200:
 
-                text = r.text.lower()
-
-                if not any(indicator in text for indicator in indicators):
-
-                    result["found_on"].append({
-                        "platform": name,
-                        "url": url
-                    })
-
-        except requests.RequestException:
-            pass
-
-    return result
 def instagram_lookup(username):
     result = {"username": username}
     try:
