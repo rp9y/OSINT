@@ -10,8 +10,30 @@ from rich.prompt import Prompt
 from rich.table import Table
 import whois
 import instaloader
+import random
 
 console = Console()
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0",
+    "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/20.0 Chrome/106.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 OPR/107.0.0.0",
+]
+
+def get_headers():
+    return {
+        "User-Agent": random.choice(USER_AGENTS),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Connection": "keep-alive",
+    }
 
 IP_PROVIDERS = [
     "http://ip-api.com/json/{}",
@@ -68,19 +90,17 @@ def phone_lookup(number):
     except Exception as e:
         result["error"] = str(e)
         return result
-
     telegram_result = {"telegram": "Not found"}
     try:
         clean_number = number.replace("+", "")
         search_url = f"https://t.me/s/{clean_number}"
-        resp = requests.get(search_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=6)
+        resp = requests.get(search_url, headers=get_headers(), timeout=6)
         if resp.status_code == 200 and "This channel doesn't exist" not in resp.text:
             telegram_result["telegram"] = "Possible public presence (check manually)"
         else:
             telegram_result["telegram"] = "No public Telegram link found"
     except Exception:
         telegram_result["telegram"] = "Check failed"
-
     result["telegram_check"] = telegram_result
     return result
 
@@ -127,20 +147,16 @@ def breach_check(target):
 
 def discord_basic(target):
     result = {"target": target}
-    
     invite_code = target.strip()
     if "discord.gg/" in invite_code:
         invite_code = invite_code.split("discord.gg/")[-1]
     invite_code = invite_code.lstrip("/").strip()
-
     if len(invite_code) < 5 or not all(c.isalnum() for c in invite_code):
         result["status"] = "Invalid invite code format"
         result["note"] = "Limited to public invite data"
         return result
-
     url = f"https://discord.com/api/v9/invites/{invite_code}"
     data = fetch_json(url)
-
     if "error" in data:
         result["api_error"] = data["error"]
     elif "message" in data:
@@ -149,106 +165,77 @@ def discord_basic(target):
             result["status"] = "Invite invalid, expired or revoked"
     elif "guild" in data:
         invite_data = {}
-        
         invite_data["type"] = data.get("type")
         invite_data["code"] = data.get("code")
-        
         if "inviter" in data:
             inv = data["inviter"]
-            invite_data["inviter"] = {
-                "id": inv.get("id"),
-                "username": inv.get("username"),
-                "global_name": inv.get("global_name"),
-                "discriminator": inv.get("discriminator"),
-                "avatar": inv.get("avatar"),
-                "banner": inv.get("banner"),
-                "accent_color": inv.get("accent_color"),
-                "banner_color": inv.get("banner_color"),
-                "verified": inv.get("verified"),
-                "public_flags": inv.get("public_flags"),
-                "flags": inv.get("flags"),
-            }
-            if "clan" in inv:
-                invite_data["inviter"]["clan"] = inv["clan"]
-            if "primary_guild" in inv:
-                invite_data["inviter"]["primary_guild"] = inv["primary_guild"]
-
+            invite_data["inviter"] = {k: inv.get(k) for k in inv}
         if "expires_at" in data:
             invite_data["expires_at"] = data["expires_at"]
-
         if "guild" in data:
             g = data["guild"]
-            invite_data["guild"] = {
-                "id": g.get("id"),
-                "name": g.get("name"),
-                "splash": g.get("splash"),
-                "banner": g.get("banner"),
-                "description": g.get("description"),
-                "icon": g.get("icon"),
-                "features": g.get("features"),
-                "verification_level": g.get("verification_level"),
-                "vanity_url_code": g.get("vanity_url_code"),
-                "nsfw_level": g.get("nsfw_level"),
-                "nsfw": g.get("nsfw"),
-                "premium_subscription_count": g.get("premium_subscription_count"),
-                "premium_tier": g.get("premium_tier"),
-            }
-
+            invite_data["guild"] = {k: g.get(k) for k in g}
         if "channel" in data:
             ch = data["channel"]
-            invite_data["channel"] = {
-                "id": ch.get("id"),
-                "type": ch.get("type"),
-                "name": ch.get("name"),
-            }
-
+            invite_data["channel"] = {k: ch.get(k) for k in ch}
         if "profile" in data:
             p = data["profile"]
-            invite_data["profile"] = {
-                "id": p.get("id"),
-                "name": p.get("name"),
-                "icon_hash": p.get("icon_hash"),
-                "member_count": p.get("member_count"),
-                "online_count": p.get("online_count"),
-                "description": p.get("description"),
-                "banner_hash": p.get("banner_hash"),
-                "nsfw": p.get("nsfw"),
-                "premium_subscription_count": p.get("premium_subscription_count"),
-                "premium_tier": p.get("premium_tier"),
-                "visibility": p.get("visibility"),
-            }
-
+            invite_data["profile"] = {k: p.get(k) for k in p}
         result["invite"] = invite_data
     else:
         result["status"] = "No guild information returned"
-
     result["note"] = "Limited to public invite data"
     return result
 
 def username_check(username):
     result = {"username": username, "found_on": []}
     sites = [
-        ("X / Twitter",   f"https://x.com/{username}"),
-        ("GitHub",        f"https://github.com/{username}"),
-        ("Reddit",        f"https://www.reddit.com/user/{username}"),
-        ("Instagram",     f"https://www.instagram.com/{username}/"),
-        ("Facebook",      f"https://www.facebook.com/{username}"),
-        ("LinkedIn",      f"https://www.linkedin.com/in/{username}/"),
-        ("YouTube",       f"https://www.youtube.com/@{username}"),
-        ("TikTok",        f"https://www.tiktok.com/@{username}"),
-        ("Pinterest",     f"https://www.pinterest.com/{username}/"),
-        ("Twitch",        f"https://www.twitch.tv/{username}"),
-        ("Steam",         f"https://steamcommunity.com/id/{username}/"),
-        ("Snapchat",      f"https://www.snapchat.com/add/{username}"),
-        ("SoundCloud",    f"https://soundcloud.com/{username}"),
-        ("DeviantArt",    f"https://www.deviantart.com/{username}"),
-        ("Behance",       f"https://www.behance.net/{username}"),
+        ("X / Twitter",   f"https://x.com/{username}", ["doesn’t exist"]),
+        ("GitHub",        f"https://github.com/{username}", ["not found"]),
+        ("Reddit",        f"https://www.reddit.com/user/{username}", ["page not found"]),
+        ("Instagram",     f"https://www.instagram.com/{username}/", ["sorry, this page"]),
+        ("Facebook",      f"https://www.facebook.com/{username}", ["content isn't available"]),
+        ("LinkedIn",      f"https://www.linkedin.com/in/{username}/", ["page not found"]),
+        ("YouTube",       f"https://www.youtube.com/@{username}", ["not found"]),
+        ("TikTok",        f"https://www.tiktok.com/@{username}", ["couldn't find"]),
+        ("Pinterest",     f"https://www.pinterest.com/{username}/", ["sorry"]),
+        ("Twitch",        f"https://www.twitch.tv/{username}", ["sorry. unless"]),
+        ("Steam",         f"https://steamcommunity.com/id/{username}/", ["could not be found"]),
+        ("Snapchat",      f"https://www.snapchat.com/add/{username}", ["not available"]),
+        ("SoundCloud",    f"https://soundcloud.com/{username}", ["404"]),
+        ("DeviantArt",    f"https://www.deviantart.com/{username}", ["page you were looking for"]),
+        ("Behance",       f"https://www.behance.net/{username}", ["sorry"]),
+        ("DoxBin",        f"https://doxbin.com/user/{username}", ["not found"]),
+        ("GitLab",        f"https://gitlab.com/{username}", ["404"]),
+        ("Bitbucket",     f"https://bitbucket.org/{username}", ["not found"]),
+        ("CodePen",       f"https://codepen.io/{username}", ["not found"]),
+        ("Replit",        f"https://replit.com/@{username}", ["not found"]),
+        ("Kaggle",        f"https://www.kaggle.com/{username}", ["404"]),
+        ("LeetCode",      f"https://leetcode.com/{username}", ["not found"]),
+        ("Dev.to",        f"https://dev.to/{username}", ["not found"]),
+        ("Hashnode",      f"https://hashnode.com/@{username}", ["not found"]),
+        ("Dribbble",      f"https://dribbble.com/{username}", ["not found"]),
+        ("ArtStation",    f"https://www.artstation.com/{username}", ["404"]),
+        ("500px",         f"https://500px.com/p/{username}", ["404"]),
+        ("Unsplash",      f"https://unsplash.com/@{username}", ["not found"]),
+        ("Flickr",        f"https://www.flickr.com/people/{username}", ["not found"]),
+        ("Bandcamp",      f"https://bandcamp.com/{username}", ["404"]),
+        ("Mixcloud",      f"https://www.mixcloud.com/{username}/", ["404"]),
+        ("Last.fm",       f"https://www.last.fm/user/{username}", ["not found"]),
+        ("Quora",         f"https://www.quora.com/profile/{username}", ["not found"]),
+        ("Medium",        f"https://medium.com/@{username}", ["404"]),
+        ("Keybase",       f"https://keybase.io/{username}", ["not found"]),
+        ("About.me",      f"https://about.me/{username}", ["not found"]),
+        ("Linktree",      f"https://linktr.ee/{username}", ["not found"]),
+        ("Carrd",         f"https://{username}.carrd.co", ["404"]),
     ]
-    for name, url in sites:
+    for name, url, errors in sites:
         try:
-            r = requests.head(url, timeout=5, allow_redirects=True)
-            if r.status_code in (200, 301, 302):
-                result["found_on"].append({"platform": name, "url": url})
+            r = requests.get(url, headers=get_headers(), timeout=8)
+            if r.status_code == 200:
+                page = r.text.lower()
+                if not any(err in page for err in errors):
+                    result["found_on"].append({"platform": name, "url": url})
         except:
             pass
     return result
@@ -268,7 +255,7 @@ def instagram_lookup(username):
             "is_private": profile.is_private,
             "profile_pic_url": profile.profile_pic_url,
         })
-    except Exception:
+    except:
         result["error"] = "Could not load profile (private, doesn't exist, rate limit, or login required)"
     return result
 
@@ -276,44 +263,33 @@ def tiktok_lookup(username):
     result = {"username": username}
     try:
         url = f"https://www.tiktok.com/@{username}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://www.tiktok.com/",
-        }
+        headers = get_headers()
         response = requests.get(url, headers=headers, timeout=12)
         if response.status_code != 200:
             result["error"] = f"Profile not found (HTTP {response.status_code})"
             return result
-
         start_str = '<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">'
         start_pos = response.text.find(start_str)
         if start_pos == -1:
             result["error"] = "Could not find profile data"
             return result
-
         start_pos += len(start_str)
         end_pos = response.text.find('</script>', start_pos)
         json_text = response.text[start_pos:end_pos].strip()
         if not json_text:
             result["error"] = "Empty data extracted"
             return result
-
         try:
             data = json.loads(json_text)
-        except json.JSONDecodeError:
+        except:
             result["error"] = "Invalid JSON in page data"
             return result
-
         default_scope = data.get("__DEFAULT_SCOPE__", {})
         user_detail = default_scope.get("webapp.user-detail", {}).get("userInfo", {})
         stats = user_detail.get("stats", {})
-
         if not user_detail:
             result["error"] = "No user info found in data"
             return result
-
         result.update({
             "nickname": user_detail.get("user", {}).get("nickname", "N/A"),
             "user_id": user_detail.get("user", {}).get("id", "N/A"),
